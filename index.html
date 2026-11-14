@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Infancy Kidz</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header>
+        <div class="logo" onclick="switchPage('home')">
+      <img src="images/logo.jpg" alt="Infancy Kids" class="shop-logo" />
+      <h1>Infancy Kidz</h1>
+    </div>
+
+    <div class="header-actions">
+      <button class="pill-btn" onclick="openBucket()">Bucket (<span id="navBucketCount">0</span>)</button>
+      <button class="pill-btn orange-outline" id="authBtn" onclick="openAuth()">Sign In</button>
+    </div>
+  </header>
+
+  <!-- Two-Page Switcher -->
+  <nav class="page-nav">
+    <button id="navHome" class="nav-tab active" onclick="switchPage('home')">1. Shop Info</button>
+    <button id="navShop" class="nav-tab" onclick="switchPage('shop')">2. Browse Items</button>
+  </nav>
+
+  <!-- ========================================== -->
+  <!-- PAGE 1: SHOP INFO, BANNER & AD SPACE       -->
+  <!-- ========================================== -->
+  <main id="pageHome" class="container">
+    <div class="shop-banner">
+      <span class="badge">Near Regional Hospital • Haa Dhaalu</span>
+      <h2>Welcome to Infancy Kidz</h2>
+      <p>Your trusted specialist store for newborn essentials, diapers, feeding gear, and hospital delivery kits.</p>
+      <button class="cta-btn" onclick="switchPage('shop')">Browse Catalog & Order →</button>
+    </div>
+
+        <!-- Infancy Kids Banner Image -->
+    <div class="ad-banner-wrap" onclick="switchPage('shop')">
+      <img src="images/banner.jpg" alt="Infancy Kidz Banner" class="ad-banner-img" />
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>🏥 2-Min From Hospital</h3>
+        <p>Located right next to the Regional Hospital. Order online while waiting and pick up without delay.</p>
+      </div>
+      <div class="info-card">
+        <h3>⛴️ Inter-Island Ferry Cargo</h3>
+        <p>Visiting from another island? Send your bucket before 2:00 PM for same-day boat delivery.</p>
+      </div>
+      <div class="info-card">
+        <h3>🕒 Opening Hours & Socials</h3>
+        <p>Sat – Thu: 8:30 AM – 10:00 PM • Fri: 2:00 PM – 10:00 PM</p>
+        <div class="social-row">
+          <a id="igLink" href="#" target="_blank">Instagram</a>
+          <a id="fbLink" href="#" target="_blank">Facebook</a>
+          <a href="viber://contact?number=%2B9607000000">Viber</a>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- PAGE 2: ITEMS, SEARCH & OWNER ADD BUTTON   -->
+  <!-- ========================================== -->
+  <main id="pageShop" class="container" style="display: none;">
+    <div class="shop-top-row">
+      <input type="text" id="searchInput" class="search" placeholder="Search items or POS code..." onkeyup="render()" />
+      <button class="owner-btn" onclick="openOwnerModal()">+ Add Item</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('All', this)">All</button>
+      <button class="tab" onclick="setTab('Bundles', this)">Hospital Bundles</button>
+      <button class="tab" onclick="setTab('Diapers', this)">Diapers</button>
+      <button class="tab" onclick="setTab('Feeding', this)">Feeding</button>
+      <button class="tab" onclick="setTab('Wear', this)">Newborn Wear</button>
+    </div>
+
+    <!-- Compact Ad Strip Inside Catalog -->
+    <div class="mini-ad">
+      <span>📢 Need urgent hospital delivery? Tap items below and send straight to Viber!</span>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <!-- Floating Bottom Bucket Pill -->
+  <div class="floating-cart" id="cartPill" onclick="openBucket()">
+    <div>
+      <span class="count-pill" id="itemCount">0 items</span>
+      <strong id="barTotal" style="margin-left:8px;">MVR 0</strong>
+    </div>
+    <span style="color:#fdba74; font-weight:600; font-size:0.85rem;">View Bucket →</span>
+  </div>
+
+    <!-- MODAL 1: Customer Bucket -->
+  <div class="modal-bg" id="bucketModal" onclick="if(event.target===this) this.style.display='none'">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>Your Bucket</h3>
+        <button class="close-btn" onclick="document.getElementById('bucketModal').style.display='none'">Close</button>
+      </div>
+      <div class="order-list" id="orderList"></div>
+      
+      <input type="text" id="custName" class="field" placeholder="Your Name *" />
+      <input type="text" id="custIsland" class="field" placeholder="Atoll & Island (e.g. HDh. Hanimaadhoo) *" />
+      <select id="deliveryType" class="field">
+        <option value="Shop Pickup (Near Hospital)">Shop Pickup (Near Hospital)</option>
+        <option value="Ferry / Speedboat Cargo">Ferry / Boat Cargo</option>
+        <option value="Island Delivery (Kulhudhuffushi)">Local Island Delivery</option>
+      </select>
+      <input type="text" id="deliveryDeadline" class="field" placeholder="Deadline / Boat Time (e.g. Today 2:00 PM Ferry) *" />
+      
+      <button class="viber-submit" onclick="sendViber()">Confirm Purchase</button>
+    </div>
+  </div>
+
+
+  <!-- MODAL 2: Customer Sign In -->
+  <div class="modal-bg" id="authModal" onclick="if(event.target===this) this.style.display='none'">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>Sign In to Save Bucket</h3>
+        <button class="close-btn" onclick="document.getElementById('authModal').style.display='none'">Close</button>
+      </div>
+      <input type="text" id="userName" class="field" placeholder="Your Name" />
+      <input type="tel" id="userPhone" class="field" placeholder="Phone / Viber Number (e.g. 7XXXXXX)" />
+      <input type="text" id="userIsland" class="field" placeholder="Home Island (Optional)" />
+      <button class="cta-btn" style="width:100%;" onclick="saveUser()">Save & Continue</button>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Owner Add Item -->
+  <div class="modal-bg" id="ownerModal" onclick="if(event.target===this) this.style.display='none'">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>Add New POS Product</h3>
+        <button class="close-btn" onclick="document.getElementById('ownerModal').style.display='none'">Close</button>
+      </div>
+      <input type="text" id="newCode" class="field" placeholder="POS Code (e.g. IK-410)" />
+      <input type="text" id="newName" class="field" placeholder="Product Name" />
+      <select id="newCat" class="field">
+        <option value="Bundles">Hospital Bundles</option>
+        <option value="Diapers">Diapers</option>
+        <option value="Feeding">Feeding</option>
+        <option value="Wear">Newborn Wear</option>
+      </select>
+      <input type="number" id="newPrice" class="field" placeholder="Price in MVR (e.g. 250)" />
+      <input type="text" id="newIcon" class="field" placeholder="Fallback Emoji (e.g. 🍼)" />
+      <button class="cta-btn" style="width:100%;" onclick="addNewProduct()">Add Item to Store</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
