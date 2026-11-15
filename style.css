@@ -281,8 +281,8 @@ header {
   border-radius: 12px;
   margin-bottom: 12px;
   text-align: center;
-  }
-  /* Product Cards & Grid */
+}
+/* Product Cards & Grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -518,5 +518,4 @@ header {
   font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  }
-  
+}
