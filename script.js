@@ -1,9 +1,9 @@
 // 1. SHOP CONFIGURATION
 const CONFIG = {
-  shopPhone: "960 993-9405", // Put Dad's / Shop 7-digit number after 960
-  shopPhoneDisplay: "+960 993-9405", // Formatted display for Viber save prompt
-  ig: "https://www.instagram.com/infancykidz?obrf=Nnl6N2E5dHhzemtr",
-  fb: "https://www.facebook.com/share/1dkCjmiTcS/",
+  shopPhone: "9607000000", // Put Dad's 7-digit number after 960
+  shopPhoneDisplay: "+960 700-0000",
+  ig: "https://instagram.com",
+  fb: "https://facebook.com",
   ownerPin: "1234",
   tgBotToken: "PASTE_YOUR_BOTFATHER_TOKEN_HERE",
   tgChatId: "PASTE_DADS_CHAT_ID_HERE"
@@ -48,9 +48,8 @@ const DEFAULT_PRODUCTS = [
   { code: "00012", name: "Duck Bubble Stick", cat: "Gear", price: 109, icon: "🫧" },
   { code: "00023", name: "Bubble Bottle F&D", cat: "Gear", price: 35, icon: "🫧" }
 ];
-
 // 3. APP STATE & STORAGE
-const STORAGE_KEY = "ik_mpos_v2";
+const STORAGE_KEY = "ik_mpos_v3";
 let products = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_PRODUCTS;
 let currentUser = JSON.parse(localStorage.getItem("ik_user")) || null;
 let activeTab = "All";
@@ -133,7 +132,6 @@ function saveUser() {
   updateAuthUI();
   loadUserData();
 }
-
 // 6. CATALOG FILTERING & RENDERING
 function setTab(cat, el) {
   activeTab = cat;
@@ -189,6 +187,7 @@ function render() {
 
   grid.innerHTML = html;
 }
+
 // 7. BUCKET MANAGEMENT
 function changeQty(code, delta) {
   const item = products.find(function(p) { return p.code === code; });
@@ -256,8 +255,7 @@ function openBucket() {
 
   document.getElementById("bucketModal").style.display = "flex";
 }
-
-// 8. THREE-CHANNEL CHECKOUT (TELEGRAM / WHATSAPP / VIBER)
+// 8. THREE-CHANNEL CHECKOUT WITH CONFIRMATION GUARD
 function checkoutOption(channel) {
   if (!cart.length) {
     alert("Your bucket is empty!");
@@ -276,14 +274,28 @@ function checkoutOption(channel) {
   }
 
   let total = 0;
+  let count = 0;
   let orderLines = "";
   let summaryItems = [];
   cart.forEach(function(i) {
     const sub = i.price * i.qty;
     total += sub;
+    count += i.qty;
     orderLines += "• " + i.qty + "x [" + i.code + "] " + i.name + " (MVR " + sub + ")\n";
     summaryItems.push(i.qty + "x " + i.name);
   });
+
+  const confirmMsg =
+    "CONFIRM ORDER?\n\n" +
+    "Items: " + count + " item(s)\n" +
+    "Total: MVR " + total + "\n" +
+    "Method: " + method + "\n" +
+    "Send via: " + channel.toUpperCase() + "\n\n" +
+    "Press OK to send order, or Cancel to go back.";
+
+  if (!confirm(confirmMsg)) {
+    return;
+  }
 
   const message =
     "Hi, my name is " + name + " from " + island + ".\n" +
@@ -297,6 +309,9 @@ function checkoutOption(channel) {
   const orderRecord = {
     id: "IK-" + Math.floor(1000 + Math.random() * 9000),
     date: new Date().toLocaleDateString(),
+    custName: name,
+    custPhone: phone,
+    custIsland: island,
     items: summaryItems.join(", "),
     total: total,
     method: method,
@@ -318,7 +333,7 @@ function checkoutOption(channel) {
     .then(function(res) {
       if (!res.ok) throw new Error("Telegram failed");
       finalizeOrder(orderRecord);
-      alert("✅ Order Sent! Infancy Kidz received your order via Telegram and will contact " + phone + " with BML payment details.");
+      alert("✅ Order " + orderRecord.id + " Sent! If this was accidental, go to '3. My Orders' and tap Cancel Order immediately.");
     })
     .catch(function() {
       alert("Could not reach Telegram right now—please choose WhatsApp or Viber instead.");
@@ -361,16 +376,17 @@ function proceedToViber() {
   }
   window.location.href = "viber://forward?text=" + encodeURIComponent(pendingViberMessage);
 }
-
-// 9. MY ORDERS TRACKER (IN PROCESS & RECEIVED)
+// 9. MY ORDERS TRACKER (IN PROCESS, CANCEL/REVERSE, RECEIVED & REMOVE)
 function renderOrders() {
   const processBox = document.getElementById("ordersInProcess");
   const receivedBox = document.getElementById("ordersReceived");
+  const cancelledBox = document.getElementById("ordersCancelled");
   if (!processBox || !receivedBox) return;
 
   const orders = getSavedOrders();
   const inProcess = orders.filter(function(o) { return o.status === "process"; });
   const received = orders.filter(function(o) { return o.status === "received"; });
+  const cancelled = orders.filter(function(o) { return o.status === "cancelled"; });
 
   if (!inProcess.length) {
     processBox.innerHTML = '<div class="info-card"><p>No orders currently in process.</p></div>';
@@ -385,7 +401,10 @@ function renderOrders() {
           '</div>' +
           '<p style="margin-bottom:6px;">' + o.items + '</p>' +
           '<p style="font-size:0.78rem; margin-bottom:10px;"><strong>Delivery:</strong> ' + o.method + ' • <strong>Deadline:</strong> ' + o.deadline + '</p>' +
-          '<button type="button" class="pill-btn orange-outline" onclick="markOrderReceived(\'' + o.id + '\')">✅ Mark as Received</button>' +
+          '<div style="display:flex; flex-wrap:wrap; gap:8px;">' +
+            '<button type="button" class="pill-btn orange-outline" onclick="markOrderReceived(\'' + o.id + '\')">✅ Mark Received</button>' +
+            '<button type="button" class="pill-btn" style="color:#dc2626; background:#fef2f2;" onclick="cancelAndReverseOrder(\'' + o.id + '\')">❌ Cancel / Reverse Order</button>' +
+          '</div>' +
         '</div>';
     });
     processBox.innerHTML = html;
@@ -397,16 +416,80 @@ function renderOrders() {
     let html = "";
     received.forEach(function(o) {
       html +=
-        '<div class="info-card" style="margin-bottom:10px; opacity:0.85;">' +
+        '<div class="info-card" style="margin-bottom:10px;">' +
           '<div style="display:flex; justify-content:space-between; margin-bottom:4px;">' +
             '<strong>' + o.id + ' • MVR ' + o.total + '</strong>' +
             '<span style="font-size:0.72rem; background:#dcfce7; color:#16a34a; padding:2px 8px; border-radius:999px; font-weight:700;">Received</span>' +
           '</div>' +
-          '<p>' + o.items + '</p>' +
-          '<small style="color:#6b7280;">Ordered on ' + o.date + '</small>' +
+          '<p style="margin-bottom:8px;">' + o.items + '</p>' +
+          '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+            '<small style="color:#6b7280;">Ordered on ' + o.date + '</small>' +
+            '<button type="button" class="pill-btn" style="color:#dc2626; background:#fef2f2;" onclick="deleteSingleOrder(\'' + o.id + '\')">Remove</button>' +
+          '</div>' +
         '</div>';
     });
     receivedBox.innerHTML = html;
+  }
+
+  if (cancelledBox) {
+    if (!cancelled.length) {
+      cancelledBox.innerHTML = '<div class="info-card"><p>No cancelled orders.</p></div>';
+    } else {
+      let html = "";
+      cancelled.forEach(function(o) {
+        html +=
+          '<div class="info-card" style="margin-bottom:10px; opacity:0.75;">' +
+            '<div style="display:flex; justify-content:space-between; margin-bottom:4px;">' +
+              '<strong>' + o.id + ' • MVR ' + o.total + '</strong>' +
+              '<span style="font-size:0.72rem; background:#fef2f2; color:#dc2626; padding:2px 8px; border-radius:999px; font-weight:700;">Cancelled</span>' +
+            '</div>' +
+            '<p style="margin-bottom:8px;">' + o.items + '</p>' +
+            '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+              '<small style="color:#6b7280;">Reversed on ' + o.date + '</small>' +
+              '<button type="button" class="pill-btn" style="color:#dc2626; background:#fef2f2;" onclick="deleteSingleOrder(\'' + o.id + '\')">Remove</button>' +
+            '</div>' +
+          '</div>';
+      });
+      cancelledBox.innerHTML = html;
+    }
+  }
+}
+
+function cancelAndReverseOrder(orderId) {
+  const orders = getSavedOrders();
+  const target = orders.find(function(o) { return o.id === orderId; });
+  if (!target) return;
+
+  if (!confirm("Cancel & reverse Order " + orderId + " (MVR " + target.total + ")? Do NOT make a BML transfer if you cancel.")) {
+    return;
+  }
+
+  target.status = "cancelled";
+  localStorage.setItem("ik_orders_" + getUserSuffix(), JSON.stringify(orders));
+  renderOrders();
+
+  const cancelText =
+    "❌ ORDER CANCELLED / REVERSED — INFANCY KIDZ\n\n" +
+    "Order ID: " + target.id + "\n" +
+    "Customer: " + (target.custName || "Customer") + " (" + (target.custPhone || "") + ")\n" +
+    "Items: " + target.items + "\n" +
+    "Total: MVR " + target.total + "\n\n" +
+    "Please DO NOT pack or dispatch this order.";
+
+  if (target.channel === "TELEGRAM" && CONFIG.tgBotToken !== "PASTE_YOUR_BOTFATHER_TOKEN_HERE") {
+    fetch("https://telegram.org" + CONFIG.tgBotToken + "/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: CONFIG.tgChatId, text: cancelText })
+    }).catch(function() {});
+    alert("Order " + orderId + " has been cancelled and Infancy Kidz was notified automatically.");
+  } else if (target.channel === "WHATSAPP") {
+    window.location.href = "https://wa.me" + CONFIG.shopPhone + "?text=" + encodeURIComponent(cancelText);
+  } else {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(cancelText).catch(function() {});
+    }
+    alert("Order " + orderId + " marked as Cancelled! A cancellation notice was copied—please paste it in Viber if you already sent the order message.");
   }
 }
 
@@ -418,6 +501,20 @@ function markOrderReceived(orderId) {
     localStorage.setItem("ik_orders_" + getUserSuffix(), JSON.stringify(orders));
     renderOrders();
   }
+}
+
+function deleteSingleOrder(orderId) {
+  if (!confirm("Remove order " + orderId + " from your list?")) return;
+  const updated = getSavedOrders().filter(function(o) { return o.id !== orderId; });
+  localStorage.setItem("ik_orders_" + getUserSuffix(), JSON.stringify(updated));
+  renderOrders();
+}
+
+function clearOrderHistory() {
+  if (!getSavedOrders().length) return alert("Your order history is already empty.");
+  if (!confirm("Clear all your order history?")) return;
+  localStorage.removeItem("ik_orders_" + getUserSuffix());
+  renderOrders();
 }
 
 // 10. OWNER ADD-ITEM MODE
@@ -457,4 +554,3 @@ function addNewProduct() {
 // 11. INITIALIZE
 updateAuthUI();
 loadUserData();
-          
