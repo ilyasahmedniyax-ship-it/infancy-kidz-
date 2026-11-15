@@ -1,9 +1,9 @@
 // 1. SHOP CONFIGURATION
 const CONFIG = {
-  shopPhone: "9607000000", // Put Dad's 7-digit number after 960
-  shopPhoneDisplay: "+960 700-0000",
-  ig: "https://instagram.com",
-  fb: "https://facebook.com",
+  shopPhone: "960 993-9405", // Put Dad's 7-digit number after 960
+  shopPhoneDisplay: "+960 993-9405",
+  ig: "https://www.instagram.com/infancykidz?rpxt=Nnl6N2E5dHhzemtr",
+  fb: "https://www.facebook.com/share/1dBooBQhTj/",
   ownerPin: "1234",
   tgBotToken: "PASTE_YOUR_BOTFATHER_TOKEN_HERE",
   tgChatId: "PASTE_DADS_CHAT_ID_HERE"
