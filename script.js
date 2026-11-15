@@ -1,6 +1,6 @@
 // 1. SHOP CONFIGURATION
 const CONFIG = {
-  shopPhone: "960 993-9405", // Put Dad's 7-digit number after 960
+  shopPhone: "9609939405", // Put Dad's 7-digit number after 960
   shopPhoneDisplay: "+960 993-9405",
   ig: "https://www.instagram.com/infancykidz?rpxt=Nnl6N2E5dHhzemtr",
   fb: "https://www.facebook.com/share/1dBooBQhTj/",
@@ -371,11 +371,16 @@ function copyShopPhone() {
 
 function proceedToViber() {
   document.getElementById("viberSaveModal").style.display = "none";
+
+  // 1. Copy the full formatted order message to clipboard automatically
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(pendingViberMessage).catch(function() {});
   }
-  window.location.href = "viber://forward?text=" + encodeURIComponent(pendingViberMessage);
+
+  // 2. Open Viber directly to the "Add Contact" screen with your dad's number pre-filled
+  window.location.href = "viber://contact?number=%2B" + CONFIG.shopPhone;
 }
+
 // 9. MY ORDERS TRACKER (IN PROCESS, CANCEL/REVERSE, RECEIVED & REMOVE)
 function renderOrders() {
   const processBox = document.getElementById("ordersInProcess");
