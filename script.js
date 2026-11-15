@@ -1,15 +1,21 @@
 // 1. SHOP CONFIGURATION
 const CONFIG = {
-  viber: "960993-9405", // Put Infancy Kids 7-digit Viber number after 960
-  ig: "https://www.instagram.com/infancykidz?psln=Nnl6N2E5dHhzemtr",
-  fb: "https://www.facebook.com/share/1HZj591zFJ/",
-  ownerPin: "1234"
+  shopPhone: "960 993-9405", // Put Dad's / Shop 7-digit number after 960
+  shopPhoneDisplay: "+960 993-9405", // Formatted display for Viber save prompt
+  ig: "https://www.instagram.com/infancykidz?obrf=Nnl6N2E5dHhzemtr",
+  fb: "https://www.facebook.com/share/1dkCjmiTcS/",
+  ownerPin: "1234",
+  tgBotToken: "PASTE_YOUR_BOTFATHER_TOKEN_HERE",
+  tgChatId: "PASTE_DADS_CHAT_ID_HERE"
 };
 
 const igEl = document.getElementById("igLink");
 const fbEl = document.getElementById("fbLink");
 if (igEl) igEl.href = CONFIG.ig;
 if (fbEl) fbEl.href = CONFIG.fb;
+if (document.getElementById("displayShopPhone")) {
+  document.getElementById("displayShopPhone").innerText = CONFIG.shopPhoneDisplay;
+}
 
 // 2. REAL MPOS INVENTORY
 const DEFAULT_PRODUCTS = [
@@ -44,39 +50,51 @@ const DEFAULT_PRODUCTS = [
 ];
 
 // 3. APP STATE & STORAGE
-const STORAGE_KEY = "ik_mpos_v1";
+const STORAGE_KEY = "ik_mpos_v2";
 let products = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_PRODUCTS;
 let currentUser = JSON.parse(localStorage.getItem("ik_user")) || null;
 let activeTab = "All";
 let cart = [];
+let pendingViberMessage = "";
 
-function getBucketKey() {
-  return currentUser && currentUser.phone ? "ik_bucket_" + currentUser.phone : "ik_bucket_guest";
+function getUserSuffix() {
+  return currentUser && currentUser.phone ? currentUser.phone : "guest";
 }
 
-function loadUserBucket() {
-  cart = JSON.parse(localStorage.getItem(getBucketKey())) || [];
+function loadUserData() {
+  cart = JSON.parse(localStorage.getItem("ik_bucket_" + getUserSuffix())) || [];
   updateBar();
   render();
+  renderOrders();
 }
 
 function saveUserBucket() {
-  localStorage.setItem(getBucketKey(), JSON.stringify(cart));
+  localStorage.setItem("ik_bucket_" + getUserSuffix(), JSON.stringify(cart));
 }
 
-// 4. TWO-PAGE NAVIGATION
-function switchPage(page) {
-  const homeEl = document.getElementById("pageHome");
-  const shopEl = document.getElementById("pageShop");
-  const navHome = document.getElementById("navHome");
-  const navShop = document.getElementById("navShop");
+function getSavedOrders() {
+  return JSON.parse(localStorage.getItem("ik_orders_" + getUserSuffix())) || [];
+}
 
-  if (homeEl) homeEl.style.display = page === "home" ? "block" : "none";
-  if (shopEl) shopEl.style.display = page === "shop" ? "block" : "none";
-  if (navHome) navHome.classList.toggle("active", page === "home");
-  if (navShop) navShop.classList.toggle("active", page === "shop");
+function saveOrderRecord(orderObj) {
+  const orders = getSavedOrders();
+  orders.unshift(orderObj);
+  localStorage.setItem("ik_orders_" + getUserSuffix(), JSON.stringify(orders));
+  renderOrders();
+}
+
+// 4. THREE-PAGE NAVIGATION
+function switchPage(page) {
+  document.getElementById("pageHome").style.display = page === "home" ? "block" : "none";
+  document.getElementById("pageShop").style.display = page === "shop" ? "block" : "none";
+  document.getElementById("pageOrders").style.display = page === "orders" ? "block" : "none";
+
+  document.getElementById("navHome").classList.toggle("active", page === "home");
+  document.getElementById("navShop").classList.toggle("active", page === "shop");
+  document.getElementById("navOrders").classList.toggle("active", page === "orders");
 
   if (page === "shop") render();
+  if (page === "orders") renderOrders();
 }
 
 // 5. CUSTOMER SIGN IN
@@ -92,12 +110,11 @@ function openAuth() {
       currentUser = null;
       localStorage.removeItem("ik_user");
       updateAuthUI();
-      loadUserBucket();
+      loadUserData();
     }
     return;
   }
-  const modal = document.getElementById("authModal");
-  if (modal) modal.style.display = "flex";
+  document.getElementById("authModal").style.display = "flex";
 }
 
 function saveUser() {
@@ -114,15 +131,13 @@ function saveUser() {
   localStorage.setItem("ik_user", JSON.stringify(currentUser));
   document.getElementById("authModal").style.display = "none";
   updateAuthUI();
-  loadUserBucket();
+  loadUserData();
 }
 
 // 6. CATALOG FILTERING & RENDERING
 function setTab(cat, el) {
   activeTab = cat;
-  document.querySelectorAll(".tab").forEach(function(t) {
-    t.classList.remove("active");
-  });
+  document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
   if (el) el.classList.add("active");
   render();
 }
@@ -131,9 +146,7 @@ function render() {
   const grid = document.getElementById("grid");
   if (!grid) return;
 
-  const searchEl = document.getElementById("searchInput");
-  const q = searchEl ? searchEl.value.toLowerCase().trim() : "";
-
+  const q = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
   const filtered = products.filter(function(p) {
     const matchTab = activeTab === "All" || p.cat === activeTab;
     const matchQuery = p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q);
@@ -150,29 +163,21 @@ function render() {
     const inCart = cart.find(function(c) { return c.code === p.code; });
     const qty = inCart ? inCart.qty : 0;
 
-    let actionHTML = "";
-    if (qty > 0) {
-      actionHTML =
-        '<div class="card-qty">' +
+    const actionHTML = qty > 0
+      ? '<div class="card-qty">' +
           '<button type="button" onclick="changeQty(\'' + p.code + '\', -1)">-</button>' +
           '<span>' + qty + ' in bucket</span>' +
           '<button type="button" onclick="changeQty(\'' + p.code + '\', 1)">+</button>' +
-        '</div>';
-    } else {
-      actionHTML = '<button type="button" class="plus-btn" onclick="changeQty(\'' + p.code + '\', 1)">+ Pick</button>';
-    }
-
-    const pickedClass = qty > 0 ? " picked" : "";
-    const pickedBadge = qty > 0 ? '<span class="picked-badge">Picked: ' + qty + '</span>' : "";
-    const iconFallback = p.icon || "🧸";
+        '</div>'
+      : '<button type="button" class="plus-btn" onclick="changeQty(\'' + p.code + '\', 1)">+ Pick</button>';
 
     html +=
-      '<div class="card' + pickedClass + '">' +
+      '<div class="card' + (qty > 0 ? " picked" : "") + '">' +
         '<div class="img-wrap">' +
           '<span class="code-badge">' + p.code + '</span>' +
-          pickedBadge +
+          (qty > 0 ? '<span class="picked-badge">Picked: ' + qty + '</span>' : "") +
           '<img src="images/' + p.code + '.jpg" alt="' + p.name + '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'block\';" />' +
-          '<span class="fallback-icon" style="display:none;">' + iconFallback + '</span>' +
+          '<span class="fallback-icon" style="display:none;">' + (p.icon || "🧸") + '</span>' +
         '</div>' +
         '<div class="card-info">' +
           '<div class="title">' + p.name + '</div>' +
@@ -194,19 +199,13 @@ function changeQty(code, delta) {
     cart.push({ code: item.code, name: item.name, cat: item.cat, price: item.price, icon: item.icon, qty: 1 });
   } else if (idx !== -1) {
     cart[idx].qty += delta;
-    if (cart[idx].qty <= 0) {
-      cart.splice(idx, 1);
-    }
+    if (cart[idx].qty <= 0) cart.splice(idx, 1);
   }
 
   saveUserBucket();
   updateBar();
   render();
-
-  const bucketModal = document.getElementById("bucketModal");
-  if (bucketModal && bucketModal.style.display === "flex") {
-    openBucket();
-  }
+  if (document.getElementById("bucketModal").style.display === "flex") openBucket();
 }
 
 function updateBar() {
@@ -217,17 +216,12 @@ function updateBar() {
     total += item.price * item.qty;
   });
 
-  const navCount = document.getElementById("navBucketCount");
-  if (navCount) navCount.innerText = count;
-
+  document.getElementById("navBucketCount").innerText = count;
   const pill = document.getElementById("cartPill");
-  if (!pill) return;
-
-  if (count === 0) {
+  if (!count) {
     pill.style.display = "none";
     return;
   }
-
   pill.style.display = "flex";
   document.getElementById("itemCount").innerText = count + (count > 1 ? " items" : " item");
   document.getElementById("barTotal").innerText = "MVR " + total;
@@ -235,93 +229,198 @@ function updateBar() {
 
 function openBucket() {
   const list = document.getElementById("orderList");
-  if (list) {
-    if (!cart.length) {
-      list.innerHTML = '<p style="color:#6b7280; font-size:0.9rem; padding:12px 0;">Your bucket is empty. Tap Browse Items to pick products.</p>';
-    } else {
-      let listHTML = "";
-      cart.forEach(function(i) {
-        listHTML +=
-          '<div class="order-item">' +
-            '<div>' +
-              '<strong>[' + i.code + ']</strong> ' + i.name + '<br/>' +
-              '<small style="color:#6b7280;">MVR ' + i.price + ' each • Subtotal: MVR ' + (i.price * i.qty) + '</small>' +
-            '</div>' +
-            '<div class="qty-controls">' +
-              '<button type="button" class="qty-btn" onclick="changeQty(\'' + i.code + '\', -1)">-</button>' +
-              '<strong>' + i.qty + '</strong>' +
-              '<button type="button" class="qty-btn" onclick="changeQty(\'' + i.code + '\', 1)">+</button>' +
-            '</div>' +
-          '</div>';
-      });
-      list.innerHTML = listHTML;
-    }
+  if (!cart.length) {
+    list.innerHTML = '<p style="color:#6b7280; font-size:0.9rem; padding:12px 0;">Your bucket is empty.</p>';
+  } else {
+    let listHTML = "";
+    cart.forEach(function(i) {
+      listHTML +=
+        '<div class="order-item">' +
+          '<div><strong>[' + i.code + ']</strong> ' + i.name + '<br/>' +
+          '<small style="color:#6b7280;">MVR ' + i.price + ' each • Subtotal: MVR ' + (i.price * i.qty) + '</small></div>' +
+          '<div class="qty-controls">' +
+            '<button type="button" class="qty-btn" onclick="changeQty(\'' + i.code + '\', -1)">-</button>' +
+            '<strong>' + i.qty + '</strong>' +
+            '<button type="button" class="qty-btn" onclick="changeQty(\'' + i.code + '\', 1)">+</button>' +
+          '</div>' +
+        '</div>';
+    });
+    list.innerHTML = listHTML;
   }
 
   if (currentUser) {
-    const nameEl = document.getElementById("custName");
-    const islandEl = document.getElementById("custIsland");
-    const phoneEl = document.getElementById("custPhone");
-    if (nameEl && !nameEl.value) nameEl.value = currentUser.name || "";
-    if (islandEl && !islandEl.value) islandEl.value = currentUser.island || "";
-    if (phoneEl && !phoneEl.value) phoneEl.value = currentUser.phone || "";
+    if (!document.getElementById("custName").value) document.getElementById("custName").value = currentUser.name || "";
+    if (!document.getElementById("custPhone").value) document.getElementById("custPhone").value = currentUser.phone || "";
+    if (!document.getElementById("custIsland").value) document.getElementById("custIsland").value = currentUser.island || "";
   }
 
   document.getElementById("bucketModal").style.display = "flex";
 }
 
-// 8. CONFIRM PURCHASE -> VIBER
-function sendViber() {
+// 8. THREE-CHANNEL CHECKOUT (TELEGRAM / WHATSAPP / VIBER)
+function checkoutOption(channel) {
   if (!cart.length) {
     alert("Your bucket is empty!");
     return;
   }
 
-  const nameEl = document.getElementById("custName");
-  const islandEl = document.getElementById("custIsland");
-  const phoneEl = document.getElementById("custPhone");
-  const methodEl = document.getElementById("deliveryType");
-  const deadlineEl = document.getElementById("deliveryDeadline") || document.getElementById("deliveryNote");
+  const name = document.getElementById("custName").value.trim();
+  const phone = document.getElementById("custPhone").value.trim();
+  const island = document.getElementById("custIsland").value.trim();
+  const method = document.getElementById("deliveryType").value;
+  const deadline = document.getElementById("deliveryDeadline").value.trim();
 
-  const name = nameEl ? nameEl.value.trim() : "";
-  const island = islandEl ? islandEl.value.trim() : "";
-  const phone = phoneEl ? phoneEl.value.trim() : (currentUser ? currentUser.phone : "");
-  const method = methodEl ? methodEl.value : "Shop Pickup";
-  const deadline = deadlineEl ? deadlineEl.value.trim() : "";
-
-  if (!name || !deadline) {
-    alert("Please fill in your Name and Delivery/Pickup Deadline before confirming.");
+  if (!name || !phone || !island || !deadline) {
+    alert("Please fill in your Name, Phone Number, Atoll & Island, and Deadline.");
     return;
   }
 
   let total = 0;
   let orderLines = "";
+  let summaryItems = [];
   cart.forEach(function(i) {
     const sub = i.price * i.qty;
     total += sub;
-    orderLines += "• " + i.qty + "x [" + i.code + "] " + i.name + " — MVR " + sub + "\n";
+    orderLines += "• " + i.qty + "x [" + i.code + "] " + i.name + " (MVR " + sub + ")\n";
+    summaryItems.push(i.qty + "x " + i.name);
   });
 
-  const locationPart = island ? " from " + island : "";
-  const phonePart = phone ? "\nPhone: " + phone : "";
-
   const message =
-    "Hi, my name is " + name + locationPart + "." + phonePart + "\n\n" +
+    "Hi, my name is " + name + " from " + island + ".\n" +
+    "Phone: " + phone + "\n\n" +
     "I ordered:\n" + orderLines + "\n" +
     "Total: MVR " + total + "\n" +
     "Method: " + method + "\n" +
     "Deadline: " + deadline + "\n\n" +
     "Thank you!";
 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(message).catch(function() {});
+  const orderRecord = {
+    id: "IK-" + Math.floor(1000 + Math.random() * 9000),
+    date: new Date().toLocaleDateString(),
+    items: summaryItems.join(", "),
+    total: total,
+    method: method,
+    deadline: deadline,
+    channel: channel.toUpperCase(),
+    status: "process"
+  };
+
+  if (channel === "telegram") {
+    const tgUrl = "https://telegram.org" + CONFIG.tgBotToken + "/sendMessage";
+    fetch(tgUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: CONFIG.tgChatId,
+        text: "🛍️ NEW TELEGRAM ORDER (" + orderRecord.id + ")\n\n" + message
+      })
+    })
+    .then(function(res) {
+      if (!res.ok) throw new Error("Telegram failed");
+      finalizeOrder(orderRecord);
+      alert("✅ Order Sent! Infancy Kidz received your order via Telegram and will contact " + phone + " with BML payment details.");
+    })
+    .catch(function() {
+      alert("Could not reach Telegram right now—please choose WhatsApp or Viber instead.");
+    });
   }
 
-  alert("Order copied! Viber will open now — select Infancy Kids (or paste into our chat) and hit Send.");
-  window.location.href = "viber://forward?text=" + encodeURIComponent(message);
+  if (channel === "whatsapp") {
+    finalizeOrder(orderRecord);
+    window.location.href = "https://wa.me" + CONFIG.shopPhone + "?text=" + encodeURIComponent(message);
+  }
 
+  if (channel === "viber") {
+    pendingViberMessage = message;
+    finalizeOrder(orderRecord);
+    document.getElementById("bucketModal").style.display = "none";
+    document.getElementById("viberSaveModal").style.display = "flex";
+  }
+}
 
-// 9. OWNER ADD-ITEM MODE
+function finalizeOrder(orderRecord) {
+  saveOrderRecord(orderRecord);
+  cart = [];
+  saveUserBucket();
+  updateBar();
+  render();
+  document.getElementById("bucketModal").style.display = "none";
+}
+
+function copyShopPhone() {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText("+" + CONFIG.shopPhone);
+    alert("Copied +" + CONFIG.shopPhone + " to clipboard!");
+  }
+}
+
+function proceedToViber() {
+  document.getElementById("viberSaveModal").style.display = "none";
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(pendingViberMessage).catch(function() {});
+  }
+  window.location.href = "viber://forward?text=" + encodeURIComponent(pendingViberMessage);
+}
+
+// 9. MY ORDERS TRACKER (IN PROCESS & RECEIVED)
+function renderOrders() {
+  const processBox = document.getElementById("ordersInProcess");
+  const receivedBox = document.getElementById("ordersReceived");
+  if (!processBox || !receivedBox) return;
+
+  const orders = getSavedOrders();
+  const inProcess = orders.filter(function(o) { return o.status === "process"; });
+  const received = orders.filter(function(o) { return o.status === "received"; });
+
+  if (!inProcess.length) {
+    processBox.innerHTML = '<div class="info-card"><p>No orders currently in process.</p></div>';
+  } else {
+    let html = "";
+    inProcess.forEach(function(o) {
+      html +=
+        '<div class="info-card" style="margin-bottom:10px; border-left:4px solid #f97316;">' +
+          '<div style="display:flex; justify-content:space-between; margin-bottom:4px;">' +
+            '<strong>' + o.id + ' • MVR ' + o.total + '</strong>' +
+            '<span style="font-size:0.72rem; background:#fff7ed; color:#ea580c; padding:2px 8px; border-radius:999px; font-weight:700;">In Process (' + o.channel + ')</span>' +
+          '</div>' +
+          '<p style="margin-bottom:6px;">' + o.items + '</p>' +
+          '<p style="font-size:0.78rem; margin-bottom:10px;"><strong>Delivery:</strong> ' + o.method + ' • <strong>Deadline:</strong> ' + o.deadline + '</p>' +
+          '<button type="button" class="pill-btn orange-outline" onclick="markOrderReceived(\'' + o.id + '\')">✅ Mark as Received</button>' +
+        '</div>';
+    });
+    processBox.innerHTML = html;
+  }
+
+  if (!received.length) {
+    receivedBox.innerHTML = '<div class="info-card"><p>No received orders yet.</p></div>';
+  } else {
+    let html = "";
+    received.forEach(function(o) {
+      html +=
+        '<div class="info-card" style="margin-bottom:10px; opacity:0.85;">' +
+          '<div style="display:flex; justify-content:space-between; margin-bottom:4px;">' +
+            '<strong>' + o.id + ' • MVR ' + o.total + '</strong>' +
+            '<span style="font-size:0.72rem; background:#dcfce7; color:#16a34a; padding:2px 8px; border-radius:999px; font-weight:700;">Received</span>' +
+          '</div>' +
+          '<p>' + o.items + '</p>' +
+          '<small style="color:#6b7280;">Ordered on ' + o.date + '</small>' +
+        '</div>';
+    });
+    receivedBox.innerHTML = html;
+  }
+}
+
+function markOrderReceived(orderId) {
+  const orders = getSavedOrders();
+  const target = orders.find(function(o) { return o.id === orderId; });
+  if (target) {
+    target.status = "received";
+    localStorage.setItem("ik_orders_" + getUserSuffix(), JSON.stringify(orders));
+    renderOrders();
+  }
+}
+
+// 10. OWNER ADD-ITEM MODE
 function openOwnerModal() {
   const pin = prompt("Enter Owner PIN to add items:");
   if (pin !== CONFIG.ownerPin) {
@@ -352,9 +451,10 @@ function addNewProduct() {
   document.getElementById("ownerModal").style.display = "none";
 
   render();
-  alert(name + " added to Infancy Kids!");
+  alert(name + " added to Infancy Kidz!");
 }
 
-// 10. INITIALIZE
+// 11. INITIALIZE
 updateAuthUI();
-loadUserBucket();}
+loadUserData();
+          
