@@ -10,25 +10,25 @@
 
   <!-- Top Bar -->
   <header>
-        <div class="logo" onclick="switchPage('home')">
-      <img src="images/logo.jpg" alt="Infancy Kids" class="shop-logo" />
+    <div class="logo" onclick="switchPage('home')">
+      <img src="images/logo.png" onerror="this.onerror=null; this.src='images/logo.jpg';" alt="Infancy Kidz" class="shop-logo" />
       <h1>Infancy Kidz</h1>
     </div>
-
     <div class="header-actions">
       <button class="pill-btn" onclick="openBucket()">Bucket (<span id="navBucketCount">0</span>)</button>
       <button class="pill-btn orange-outline" id="authBtn" onclick="openAuth()">Sign In</button>
     </div>
   </header>
 
-  <!-- Two-Page Switcher -->
+  <!-- Three-Page Switcher -->
   <nav class="page-nav">
     <button id="navHome" class="nav-tab active" onclick="switchPage('home')">1. Shop Info</button>
     <button id="navShop" class="nav-tab" onclick="switchPage('shop')">2. Browse Items</button>
+    <button id="navOrders" class="nav-tab" onclick="switchPage('orders')">3. My Orders</button>
   </nav>
 
   <!-- ========================================== -->
-  <!-- PAGE 1: SHOP INFO, BANNER & AD SPACE       -->
+  <!-- PAGE 1: SHOP INFO & BANNER                 -->
   <!-- ========================================== -->
   <main id="pageHome" class="container">
     <div class="shop-banner">
@@ -38,7 +38,6 @@
       <button class="cta-btn" onclick="switchPage('shop')">Browse Catalog & Order →</button>
     </div>
 
-        <!-- Infancy Kids Banner Image -->
     <div class="ad-banner-wrap" onclick="switchPage('shop')">
       <img src="images/banner.jpg" alt="Infancy Kidz Banner" class="ad-banner-img" />
     </div>
@@ -58,15 +57,13 @@
         <div class="social-row">
           <a id="igLink" href="#" target="_blank">Instagram</a>
           <a id="fbLink" href="#" target="_blank">Facebook</a>
-          <a href="viber://contact?number=%2B9607000000">Viber</a>
-
         </div>
       </div>
     </div>
   </main>
 
   <!-- ========================================== -->
-  <!-- PAGE 2: ITEMS, SEARCH & OWNER ADD BUTTON   -->
+  <!-- PAGE 2: ITEMS & SEARCH                     -->
   <!-- ========================================== -->
   <main id="pageShop" class="container" style="display: none;">
     <div class="shop-top-row">
@@ -76,18 +73,31 @@
 
     <div class="tabs">
       <button class="tab active" onclick="setTab('All', this)">All</button>
-      <button class="tab" onclick="setTab('Bundles', this)">Hospital Bundles</button>
       <button class="tab" onclick="setTab('Diapers', this)">Diapers</button>
       <button class="tab" onclick="setTab('Feeding', this)">Feeding</button>
-      <button class="tab" onclick="setTab('Wear', this)">Newborn Wear</button>
+      <button class="tab" onclick="setTab('Gear', this)">Gear & Toys</button>
     </div>
 
-    <!-- Compact Ad Strip Inside Catalog -->
     <div class="mini-ad">
-      <span>📢 Need urgent hospital delivery? Tap items below and send straight to Viber!</span>
+      <span>📢 Pick items below, then choose Telegram, WhatsApp, or Viber at checkout!</span>
     </div>
 
     <div class="grid" id="grid"></div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- PAGE 3: CUSTOMER ORDERS TRACKER            -->
+  <!-- ========================================== -->
+  <main id="pageOrders" class="container" style="display: none;">
+    <div class="info-card" style="margin-bottom:14px;">
+      <h3>📦 My Orders</h3>
+      <p>Track your orders currently in process and mark them received once delivered.</p>
+    </div>
+    <h4 style="font-size:0.85rem; color:#ea580c; margin:10px 0 8px;">⏳ IN PROCESS</h4>
+    <div id="ordersInProcess"></div>
+
+    <h4 style="font-size:0.85rem; color:#16a34a; margin:18px 0 8px;">✅ RECEIVED</h4>
+    <div id="ordersReceived"></div>
   </main>
 
   <!-- Floating Bottom Bucket Pill -->
@@ -99,57 +109,80 @@
     <span style="color:#fdba74; font-weight:600; font-size:0.85rem;">View Bucket →</span>
   </div>
 
-    <!-- MODAL 1: Customer Bucket -->
+  <!-- MODAL 1: Customer Bucket & 3 Contact Options -->
   <div class="modal-bg" id="bucketModal" onclick="if(event.target===this) this.style.display='none'">
-    <div class="sheet">
+    <div class="sheet" style="max-height:90vh; overflow-y:auto;">
       <div class="sheet-head">
         <h3>Your Bucket</h3>
         <button class="close-btn" onclick="document.getElementById('bucketModal').style.display='none'">Close</button>
       </div>
       <div class="order-list" id="orderList"></div>
       
-      <input type="text" id="custName" class="field" placeholder="Your Name *" />
+      <input type="text" id="custName" class="field" placeholder="Your Full Name *" />
+      <input type="tel" id="custPhone" class="field" placeholder="Your Phone / Viber Number (e.g. 7XXXXXX) *" />
       <input type="text" id="custIsland" class="field" placeholder="Atoll & Island (e.g. HDh. Hanimaadhoo) *" />
       <select id="deliveryType" class="field">
         <option value="Shop Pickup (Near Hospital)">Shop Pickup (Near Hospital)</option>
         <option value="Ferry / Speedboat Cargo">Ferry / Boat Cargo</option>
-        <option value="Island Delivery (Kulhudhuffushi)">Local Island Delivery</option>
+        <option value="Local Island Delivery">Local Island Delivery</option>
       </select>
       <input type="text" id="deliveryDeadline" class="field" placeholder="Deadline / Boat Time (e.g. Today 2:00 PM Ferry) *" />
       
-      <button class="viber-submit" onclick="sendViber()">Confirm Purchase</button>
+      <p style="font-size:0.78rem; font-weight:700; color:#6b7280; margin:6px 0 8px;">CHOOSE HOW TO SEND YOUR ORDER:</p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button type="button" class="viber-submit" style="background:#0088cc;" onclick="checkoutOption('telegram')">✈️ Send via Telegram (Instant Auto-Order)</button>
+        <button type="button" class="viber-submit" style="background:#25D366;" onclick="checkoutOption('whatsapp')">💬 Send via WhatsApp (Direct Chat)</button>
+        <button type="button" class="viber-submit" style="background:#7360f2;" onclick="checkoutOption('viber')">🟣 Send via Viber</button>
+      </div>
     </div>
   </div>
 
+  <!-- MODAL 2: Viber Save-Number Prompt -->
+  <div class="modal-bg" id="viberSaveModal" onclick="if(event.target===this) this.style.display='none'">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>Save Shop Number First</h3>
+        <button class="close-btn" onclick="document.getElementById('viberSaveModal').style.display='none'">Close</button>
+      </div>
+      <p style="font-size:0.88rem; color:#4b5563; line-height:1.5; margin-bottom:12px;">
+        Viber requires saving our shop number before receiving your automatic order message. Please save this number in your contacts:
+      </p>
+      <div style="background:#fff7ed; border:1px solid #fed7aa; padding:14px; border-radius:14px; text-align:center; margin-bottom:12px;">
+        <div style="font-size:0.75rem; font-weight:700; color:#ea580c;">INFANCY KIDZ SHOP NUMBER</div>
+        <div id="displayShopPhone" style="font-size:1.35rem; font-weight:800; color:#111827; margin:4px 0;">+960 7000000</div>
+        <button type="button" class="pill-btn" onclick="copyShopPhone()">📋 Copy Number</button>
+      </div>
+      <button type="button" class="viber-submit" style="background:#7360f2;" onclick="proceedToViber()">✅ I Have Saved — Open Viber Now</button>
+    </div>
+  </div>
 
-  <!-- MODAL 2: Customer Sign In -->
+  <!-- MODAL 3: Customer Sign In -->
   <div class="modal-bg" id="authModal" onclick="if(event.target===this) this.style.display='none'">
     <div class="sheet">
       <div class="sheet-head">
-        <h3>Sign In to Save Bucket</h3>
+        <h3>Sign In to Save Bucket & Orders</h3>
         <button class="close-btn" onclick="document.getElementById('authModal').style.display='none'">Close</button>
       </div>
       <input type="text" id="userName" class="field" placeholder="Your Name" />
       <input type="tel" id="userPhone" class="field" placeholder="Phone / Viber Number (e.g. 7XXXXXX)" />
-      <input type="text" id="userIsland" class="field" placeholder="Home Island (Optional)" />
+      <input type="text" id="userIsland" class="field" placeholder="Home Atoll & Island (Optional)" />
       <button class="cta-btn" style="width:100%;" onclick="saveUser()">Save & Continue</button>
     </div>
   </div>
 
-  <!-- MODAL 3: Owner Add Item -->
+  <!-- MODAL 4: Owner Add Item -->
   <div class="modal-bg" id="ownerModal" onclick="if(event.target===this) this.style.display='none'">
     <div class="sheet">
       <div class="sheet-head">
         <h3>Add New POS Product</h3>
         <button class="close-btn" onclick="document.getElementById('ownerModal').style.display='none'">Close</button>
       </div>
-      <input type="text" id="newCode" class="field" placeholder="POS Code (e.g. IK-410)" />
+      <input type="text" id="newCode" class="field" placeholder="POS Code (e.g. 00035)" />
       <input type="text" id="newName" class="field" placeholder="Product Name" />
       <select id="newCat" class="field">
-        <option value="Bundles">Hospital Bundles</option>
         <option value="Diapers">Diapers</option>
         <option value="Feeding">Feeding</option>
-        <option value="Wear">Newborn Wear</option>
+        <option value="Gear">Gear & Toys</option>
       </select>
       <input type="number" id="newPrice" class="field" placeholder="Price in MVR (e.g. 250)" />
       <input type="text" id="newIcon" class="field" placeholder="Fallback Emoji (e.g. 🍼)" />
