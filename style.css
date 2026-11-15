@@ -110,7 +110,6 @@ header {
   color: var(--orange);
   border-bottom-color: var(--orange);
 }
-
 /* Page 1: Shop Banner, Promo Image & Info Cards */
 .shop-banner {
   background: linear-gradient(135deg, var(--orange), var(--orange-dark));
@@ -211,7 +210,7 @@ header {
   font-weight: 600;
 }
 
-/* Page 2: Shop Search, Owner Button & Product Cards */
+/* Page 2: Shop Search & Filter Tabs */
 .shop-top-row {
   display: flex;
   gap: 8px;
@@ -282,8 +281,8 @@ header {
   border-radius: 12px;
   margin-bottom: 12px;
   text-align: center;
-}
-
+  }
+  /* Product Cards & Grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -407,7 +406,7 @@ header {
   color: var(--orange-dark);
 }
 
-/* Floating Bottom Pill & Modals */
+/* Floating Bucket Pill & Modals */
 .floating-cart {
   position: fixed;
   bottom: 16px;
