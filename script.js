@@ -2,7 +2,7 @@
 const CONFIG = {
   shopPhone: "9609939405", // Digits only (no + or spaces)
   shopPhoneDisplay: "+960 993-9405",
-  fbPageUsername: "Infancy Kidz", // Exact username after ://facebook.com
+  fbPageUsername: "241826802354395", // Exact username after ://facebook.com
   ownerPin: "1234",
   tgBotToken: "PASTE_YOUR_BOTFATHER_TOKEN_HERE",
   tgChatId: "PASTE_DADS_CHAT_ID_HERE"
