@@ -340,10 +340,11 @@ function checkoutOption(channel) {
     });
   }
 
-    if (channel === "whatsapp") {
+      if (channel === "whatsapp") {
     finalizeOrder(orderRecord);
     window.location.href = "https://wa.me" + CONFIG.shopPhone + "?text=" + encodeURIComponent(message);
-    }
+      }
+  
 
   if (channel === "viber") {
     pendingViberMessage = message;
