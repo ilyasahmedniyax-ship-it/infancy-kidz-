@@ -1,18 +1,13 @@
 // 1. SHOP CONFIGURATION
 const CONFIG = {
-  shopPhone: "9609939405", // Digits only — no spaces or dashes!
+  shopPhone: "9609939405", // Digits only (no + or spaces)
   shopPhoneDisplay: "+960 993-9405",
-  ig: "https://www.instagram.com/infancykidz?rpxt=Nnl6N2E5dHhzemtr",
-  fb: "https://www.facebook.com/share/1dBooBQhTj/",
+  fbPageUsername: "Infancy Kidz", // Exact username after ://facebook.com
   ownerPin: "1234",
   tgBotToken: "PASTE_YOUR_BOTFATHER_TOKEN_HERE",
   tgChatId: "PASTE_DADS_CHAT_ID_HERE"
 };
 
-const igEl = document.getElementById("igLink");
-const fbEl = document.getElementById("fbLink");
-if (igEl) igEl.href = CONFIG.ig;
-if (fbEl) fbEl.href = CONFIG.fb;
 if (document.getElementById("displayShopPhone")) {
   document.getElementById("displayShopPhone").innerText = CONFIG.shopPhoneDisplay;
 }
@@ -49,7 +44,7 @@ const DEFAULT_PRODUCTS = [
   { code: "00023", name: "Bubble Bottle F&D", cat: "Gear", price: 35, icon: "🫧" }
 ];
 // 3. APP STATE & STORAGE
-const STORAGE_KEY = "ik_mpos_v3";
+const STORAGE_KEY = "ik_mpos_v4";
 let products = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_PRODUCTS;
 let currentUser = JSON.parse(localStorage.getItem("ik_user")) || null;
 let activeTab = "All";
@@ -131,7 +126,7 @@ function saveUser() {
   document.getElementById("authModal").style.display = "none";
   updateAuthUI();
   loadUserData();
-}
+                 }
 // 6. CATALOG FILTERING & RENDERING
 function setTab(cat, el) {
   activeTab = cat;
@@ -255,7 +250,7 @@ function openBucket() {
 
   document.getElementById("bucketModal").style.display = "flex";
 }
-// 8. THREE-CHANNEL CHECKOUT WITH CONFIRMATION GUARD
+// 8. THREE-CHANNEL CHECKOUT (TELEGRAM / MESSENGER / VIBER)
 function checkoutOption(channel) {
   if (!cart.length) {
     alert("Your bucket is empty!");
@@ -333,19 +328,20 @@ function checkoutOption(channel) {
     .then(function(res) {
       if (!res.ok) throw new Error("Telegram failed");
       finalizeOrder(orderRecord);
-      alert("✅ Order " + orderRecord.id + " Sent! If this was accidental, go to '3. My Orders' and tap Cancel Order immediately.");
+      alert("✅ Order " + orderRecord.id + " Sent! If accidental, go to '3. My Orders' and tap Cancel Order immediately.");
     })
     .catch(function() {
-      alert("Could not reach Telegram right now—please choose WhatsApp or Viber instead.");
+      alert("Could not reach Telegram right now—please choose Messenger or Viber instead.");
     });
   }
 
-        if (channel === "whatsapp") {
+  if (channel === "messenger") {
     finalizeOrder(orderRecord);
-    const waUrl = "https://whatsapp.com" + encodeURIComponent(message);
-    window.location.href = waUrl;
-        }
-  
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(message).catch(function() {});
+    }
+    window.location.href = "https://m.me" + CONFIG.fbPageUsername + "?text=" + encodeURIComponent(message);
+  }
 
   if (channel === "viber") {
     pendingViberMessage = message;
@@ -373,16 +369,11 @@ function copyShopPhone() {
 
 function proceedToViber() {
   document.getElementById("viberSaveModal").style.display = "none";
-
-  // 1. Copy the full formatted order message to clipboard automatically
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(pendingViberMessage).catch(function() {});
   }
-
-  // 2. Open Viber directly to the "Add Contact" screen with your dad's number pre-filled
   window.location.href = "viber://contact?number=%2B" + CONFIG.shopPhone;
 }
-
 // 9. MY ORDERS TRACKER (IN PROCESS, CANCEL/REVERSE, RECEIVED & REMOVE)
 function renderOrders() {
   const processBox = document.getElementById("ordersInProcess");
@@ -490,8 +481,11 @@ function cancelAndReverseOrder(orderId) {
       body: JSON.stringify({ chat_id: CONFIG.tgChatId, text: cancelText })
     }).catch(function() {});
     alert("Order " + orderId + " has been cancelled and Infancy Kidz was notified automatically.");
-  } else if (target.channel === "WHATSAPP") {
-    window.location.href = "https://wa.me" + CONFIG.shopPhone + "?text=" + encodeURIComponent(cancelText);
+  } else if (target.channel === "MESSENGER") {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(cancelText).catch(function() {});
+    }
+    window.location.href = "https://m.me" + CONFIG.fbPageUsername + "?text=" + encodeURIComponent(cancelText);
   } else {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(cancelText).catch(function() {});
