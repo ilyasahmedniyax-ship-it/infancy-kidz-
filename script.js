@@ -1,8 +1,8 @@
 // 1. SHOP CONFIGURATION
 const CONFIG = {
   viber: "960998-5786", // Put Infancy Kids 7-digit Viber number after 960
-  ig: "https://instagram.com",
-  fb: "https://facebook.com",
+  ig: "https://www.instagram.com/infancykidz?psln=Nnl6N2E5dHhzemtr",
+  fb: "https://www.facebook.com/share/1HZj591zFJ/",
   ownerPin: "1234"
 };
 
