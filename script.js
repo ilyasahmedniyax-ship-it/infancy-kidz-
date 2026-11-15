@@ -1,8 +1,7 @@
 // 1. SHOP CONFIGURATION
 const CONFIG = {
-  shopPhone: "9609939405", // Digits only (no + or spaces)
+  shopPhone: "9609939405",
   shopPhoneDisplay: "+960 993-9405",
-  fbPageUsername: "241826802354395", // Exact username after ://facebook.com
   ownerPin: "1234",
   tgBotToken: "PASTE_YOUR_BOTFATHER_TOKEN_HERE",
   tgChatId: "PASTE_DADS_CHAT_ID_HERE"
@@ -44,7 +43,7 @@ const DEFAULT_PRODUCTS = [
   { code: "00023", name: "Bubble Bottle F&D", cat: "Gear", price: 35, icon: "🫧" }
 ];
 // 3. APP STATE & STORAGE
-const STORAGE_KEY = "ik_mpos_v4";
+const STORAGE_KEY = "ik_mpos_v6";
 let products = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_PRODUCTS;
 let currentUser = JSON.parse(localStorage.getItem("ik_user")) || null;
 let activeTab = "All";
@@ -126,7 +125,7 @@ function saveUser() {
   document.getElementById("authModal").style.display = "none";
   updateAuthUI();
   loadUserData();
-                 }
+}
 // 6. CATALOG FILTERING & RENDERING
 function setTab(cat, el) {
   activeTab = cat;
@@ -250,7 +249,7 @@ function openBucket() {
 
   document.getElementById("bucketModal").style.display = "flex";
 }
-// 8. THREE-CHANNEL CHECKOUT (TELEGRAM / MESSENGER / VIBER)
+// 8. TWO-CHANNEL CHECKOUT (TELEGRAM & VIBER FORWARD)
 function checkoutOption(channel) {
   if (!cart.length) {
     alert("Your bucket is empty!");
@@ -331,16 +330,8 @@ function checkoutOption(channel) {
       alert("✅ Order " + orderRecord.id + " Sent! If accidental, go to '3. My Orders' and tap Cancel Order immediately.");
     })
     .catch(function() {
-      alert("Could not reach Telegram right now—please choose Messenger or Viber instead.");
+      alert("Could not reach Telegram right now—please choose Viber instead.");
     });
-  }
-
-  if (channel === "messenger") {
-    finalizeOrder(orderRecord);
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(message).catch(function() {});
-    }
-    window.location.href = "https://m.me" + CONFIG.fbPageUsername + "?text=" + encodeURIComponent(message);
   }
 
   if (channel === "viber") {
@@ -372,7 +363,7 @@ function proceedToViber() {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(pendingViberMessage).catch(function() {});
   }
-  window.location.href = "viber://contact?number=%2B" + CONFIG.shopPhone;
+  window.location.href = "viber://forward?text=" + encodeURIComponent(pendingViberMessage);
 }
 // 9. MY ORDERS TRACKER (IN PROCESS, CANCEL/REVERSE, RECEIVED & REMOVE)
 function renderOrders() {
@@ -481,11 +472,6 @@ function cancelAndReverseOrder(orderId) {
       body: JSON.stringify({ chat_id: CONFIG.tgChatId, text: cancelText })
     }).catch(function() {});
     alert("Order " + orderId + " has been cancelled and Infancy Kidz was notified automatically.");
-  } else if (target.channel === "MESSENGER") {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(cancelText).catch(function() {});
-    }
-    window.location.href = "https://m.me" + CONFIG.fbPageUsername + "?text=" + encodeURIComponent(cancelText);
   } else {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(cancelText).catch(function() {});
