@@ -53,15 +53,15 @@
       </div>
       <div class="info-card">
         <h3>🕒 Opening Hours & Socials</h3>
-        <p>Sat – Thu: 8:30 AM – 10:00 PM • Fri: 2:00 PM – 10:00 PM</p>
-                <div class="social-row">
-          <a href="https://www.instagram.com/infancykidz?mdxt=Nnl6N2E5dHhzemtr" target="_blank">Instagram</a>
-          <a href="https://www.facebook.com/share/1dBooBQhTj/" target="_blank">Facebook</a>
+        <p>Sat – Thu: 8:30 AM – 12:00 PM • Fri: 2:00 PM – 10:00 PM</p>
+        <div class="social-row">
+          <a href="https://instagram.com" target="_blank">Instagram</a>
+          <a href="https://facebook.com" target="_blank">Facebook</a>
+        </div>
       </div>
     </div>
   </main>
-
-  <!-- ========================================== -->
+    <!-- ========================================== -->
   <!-- PAGE 2: ITEMS & SEARCH                     -->
   <!-- ========================================== -->
   <main id="pageShop" class="container" style="display: none;">
@@ -78,7 +78,7 @@
     </div>
 
     <div class="mini-ad">
-      <span>📢 Pick items below, then choose Telegram, WhatsApp, or Viber at checkout!</span>
+      <span>📢 Pick items below, then choose Telegram, Messenger, or Viber at checkout!</span>
     </div>
 
     <div class="grid" id="grid"></div>
@@ -88,17 +88,18 @@
   <!-- PAGE 3: CUSTOMER ORDERS TRACKER            -->
   <!-- ========================================== -->
   <main id="pageOrders" class="container" style="display: none;">
-    <div class="info-card" style="margin-bottom:14px;">
-      <h3>📦 My Orders</h3>
-      <p>Track your orders currently in process and mark them received once delivered.</p>
+    <div class="info-card" style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <div>
+        <h3>📦 My Orders</h3>
+        <p>Track active orders, reverse accidental orders, or remove past history.</p>
+      </div>
+      <button type="button" class="pill-btn" style="color:#dc2626; background:#fef2f2; white-space:nowrap;" onclick="clearOrderHistory()">🗑 Clear History</button>
     </div>
+
     <h4 style="font-size:0.85rem; color:#ea580c; margin:10px 0 8px;">⏳ IN PROCESS</h4>
     <div id="ordersInProcess"></div>
 
     <h4 style="font-size:0.85rem; color:#16a34a; margin:18px 0 8px;">✅ RECEIVED</h4>
-    <div id="ordersReceived"></div>
-
-        <h4 style="font-size:0.85rem; color:#16a34a; margin:18px 0 8px;">✅ RECEIVED</h4>
     <div id="ordersReceived"></div>
 
     <h4 style="font-size:0.85rem; color:#dc2626; margin:18px 0 8px;">❌ CANCELLED / REVERSED</h4>
@@ -113,8 +114,7 @@
     </div>
     <span style="color:#fdba74; font-weight:600; font-size:0.85rem;">View Bucket →</span>
   </div>
-
-  <!-- MODAL 1: Customer Bucket & 3 Contact Options -->
+    <!-- MODAL 1: Customer Bucket & 3 Contact Options -->
   <div class="modal-bg" id="bucketModal" onclick="if(event.target===this) this.style.display='none'">
     <div class="sheet" style="max-height:90vh; overflow-y:auto;">
       <div class="sheet-head">
@@ -136,28 +136,28 @@
       <p style="font-size:0.78rem; font-weight:700; color:#6b7280; margin:6px 0 8px;">CHOOSE HOW TO SEND YOUR ORDER:</p>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button type="button" class="viber-submit" style="background:#0088cc;" onclick="checkoutOption('telegram')">✈️ Send via Telegram (Instant Auto-Order)</button>
-        <button type="button" class="viber-submit" style="background:#25D366;" onclick="checkoutOption('whatsapp')">💬 Send via WhatsApp (Direct Chat)</button>
+        <button type="button" class="viber-submit" style="background:#0084FF;" onclick="checkoutOption('messenger')">💙 Send via Facebook Messenger</button>
         <button type="button" class="viber-submit" style="background:#7360f2;" onclick="checkoutOption('viber')">🟣 Send via Viber</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL 2: Viber Save-Number Prompt -->
+  <!-- MODAL 2: Viber Add-Contact Prompt -->
   <div class="modal-bg" id="viberSaveModal" onclick="if(event.target===this) this.style.display='none'">
     <div class="sheet">
       <div class="sheet-head">
-        <h3>Save Shop Number First</h3>
+        <h3>Open Viber & Send Order</h3>
         <button class="close-btn" onclick="document.getElementById('viberSaveModal').style.display='none'">Close</button>
       </div>
       <p style="font-size:0.88rem; color:#4b5563; line-height:1.5; margin-bottom:12px;">
-        Viber requires saving our shop number before receiving your automatic order message. Please save this number in your contacts:
+        Your order receipt has been <strong>copied automatically</strong>! Next, Viber will open with our shop number ready—just tap <strong>Save/Add</strong>, then <strong>Paste & Send</strong> your order in the chat.
       </p>
-      <div style="background:#fff7ed; border:1px solid #fed7aa; padding:14px; border-radius:14px; text-align:center; margin-bottom:12px;">
+      <div style="background:#fff7ed; border:1px solid #fed7aa; padding:12px; border-radius:14px; text-align:center; margin-bottom:12px;">
         <div style="font-size:0.75rem; font-weight:700; color:#ea580c;">INFANCY KIDZ SHOP NUMBER</div>
-        <div id="displayShopPhone" style="font-size:1.35rem; font-weight:800; color:#111827; margin:4px 0;">+960 7000000</div>
+        <div id="displayShopPhone" style="font-size:1.3rem; font-weight:800; color:#111827; margin:4px 0;">+960 993-9405</div>
         <button type="button" class="pill-btn" onclick="copyShopPhone()">📋 Copy Number</button>
       </div>
-      <button type="button" class="viber-submit" style="background:#7360f2;" onclick="proceedToViber()">✅ I Have Saved — Open Viber Now</button>
+      <button type="button" class="viber-submit" style="background:#7360f2;" onclick="proceedToViber()">🟣 Open Shop Number in Viber →</button>
     </div>
   </div>
 
