@@ -27,9 +27,7 @@
     <button id="navOrders" class="nav-tab" onclick="switchPage('orders')">3. My Orders</button>
   </nav>
 
-  <!-- ========================================== -->
-  <!-- PAGE 1: SHOP INFO & BANNER                 -->
-  <!-- ========================================== -->
+  <!-- PAGE 1: SHOP INFO & BANNER -->
   <main id="pageHome" class="container">
     <div class="shop-banner">
       <span class="badge">Near Regional Hospital • Haa Dhaalu</span>
@@ -53,7 +51,7 @@
       </div>
       <div class="info-card">
         <h3>🕒 Opening Hours & Socials</h3>
-        <p>Sat – Thu: 8:30 AM – 12:00 PM • Fri: 2:00 PM – 10:00 PM</p>
+        <p>Sat – Thu: 8:30 AM – 10:00 PM • Fri: 2:00 PM – 10:00 PM</p>
         <div class="social-row">
           <a href="https://instagram.com" target="_blank">Instagram</a>
           <a href="https://facebook.com" target="_blank">Facebook</a>
@@ -61,9 +59,7 @@
       </div>
     </div>
   </main>
-    <!-- ========================================== -->
-  <!-- PAGE 2: ITEMS & SEARCH                     -->
-  <!-- ========================================== -->
+    <!-- PAGE 2: ITEMS & SEARCH -->
   <main id="pageShop" class="container" style="display: none;">
     <div class="shop-top-row">
       <input type="text" id="searchInput" class="search" placeholder="Search items or POS code..." onkeyup="render()" />
@@ -78,15 +74,13 @@
     </div>
 
     <div class="mini-ad">
-      <span>📢 Pick items below, then choose Telegram, Messenger, or Viber at checkout!</span>
+      <span>📢 Pick items below, then choose Telegram or Viber at checkout!</span>
     </div>
 
     <div class="grid" id="grid"></div>
   </main>
 
-  <!-- ========================================== -->
-  <!-- PAGE 3: CUSTOMER ORDERS TRACKER            -->
-  <!-- ========================================== -->
+  <!-- PAGE 3: CUSTOMER ORDERS TRACKER -->
   <main id="pageOrders" class="container" style="display: none;">
     <div class="info-card" style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
       <div>
@@ -114,7 +108,7 @@
     </div>
     <span style="color:#fdba74; font-weight:600; font-size:0.85rem;">View Bucket →</span>
   </div>
-    <!-- MODAL 1: Customer Bucket & 3 Contact Options -->
+    <!-- MODAL 1: Customer Bucket (Telegram & Viber Only) -->
   <div class="modal-bg" id="bucketModal" onclick="if(event.target===this) this.style.display='none'">
     <div class="sheet" style="max-height:90vh; overflow-y:auto;">
       <div class="sheet-head">
@@ -136,28 +130,27 @@
       <p style="font-size:0.78rem; font-weight:700; color:#6b7280; margin:6px 0 8px;">CHOOSE HOW TO SEND YOUR ORDER:</p>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button type="button" class="viber-submit" style="background:#0088cc;" onclick="checkoutOption('telegram')">✈️ Send via Telegram (Instant Auto-Order)</button>
-        <button type="button" class="viber-submit" style="background:#0084FF;" onclick="checkoutOption('messenger')">💙 Send via Facebook Messenger</button>
         <button type="button" class="viber-submit" style="background:#7360f2;" onclick="checkoutOption('viber')">🟣 Send via Viber</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL 2: Viber Add-Contact Prompt -->
+  <!-- MODAL 2: Viber Save & Forward Prompt -->
   <div class="modal-bg" id="viberSaveModal" onclick="if(event.target===this) this.style.display='none'">
     <div class="sheet">
       <div class="sheet-head">
-        <h3>Open Viber & Send Order</h3>
+        <h3>Send Order via Viber</h3>
         <button class="close-btn" onclick="document.getElementById('viberSaveModal').style.display='none'">Close</button>
       </div>
-      <p style="font-size:0.88rem; color:#4b5563; line-height:1.5; margin-bottom:12px;">
-        Your order receipt has been <strong>copied automatically</strong>! Next, Viber will open with our shop number ready—just tap <strong>Save/Add</strong>, then <strong>Paste & Send</strong> your order in the chat.
+      <p style="font-size:0.9rem; font-weight:600; color:#111827; line-height:1.5; margin-bottom:12px;">
+        Save this number and forward the order to this number:
       </p>
       <div style="background:#fff7ed; border:1px solid #fed7aa; padding:12px; border-radius:14px; text-align:center; margin-bottom:12px;">
         <div style="font-size:0.75rem; font-weight:700; color:#ea580c;">INFANCY KIDZ SHOP NUMBER</div>
         <div id="displayShopPhone" style="font-size:1.3rem; font-weight:800; color:#111827; margin:4px 0;">+960 993-9405</div>
         <button type="button" class="pill-btn" onclick="copyShopPhone()">📋 Copy Number</button>
       </div>
-      <button type="button" class="viber-submit" style="background:#7360f2;" onclick="proceedToViber()">🟣 Open Shop Number in Viber →</button>
+      <button type="button" class="viber-submit" style="background:#7360f2;" onclick="proceedToViber()">🟣 Open Viber & Forward Order →</button>
     </div>
   </div>
 
@@ -195,7 +188,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=5"></script>
-  
+  <script src="script.js?v=6"></script>
 </body>
 </html>
