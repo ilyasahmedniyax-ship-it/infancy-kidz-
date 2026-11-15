@@ -1,6 +1,6 @@
 // 1. SHOP CONFIGURATION
 const CONFIG = {
-  shopPhone: "9609939405", // Put Dad's 7-digit number after 960
+  shopPhone: "9609939405", // Digits only — no spaces or dashes!
   shopPhoneDisplay: "+960 993-9405",
   ig: "https://www.instagram.com/infancykidz?rpxt=Nnl6N2E5dHhzemtr",
   fb: "https://www.facebook.com/share/1dBooBQhTj/",
@@ -340,10 +340,10 @@ function checkoutOption(channel) {
     });
   }
 
-  if (channel === "whatsapp") {
+    if (channel === "whatsapp") {
     finalizeOrder(orderRecord);
     window.location.href = "https://wa.me" + CONFIG.shopPhone + "?text=" + encodeURIComponent(message);
-  }
+    }
 
   if (channel === "viber") {
     pendingViberMessage = message;
