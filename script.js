@@ -1,5 +1,5 @@
 /* Infancy Kidz. Configure only the public Supabase URL and publishable/anon key. */
-const CONFIG={viber:"9609985786",ig:"https://instagram.com",fb:"https://facebook.com",supabaseUrl:"https://mchuktivihwoyvdnmchu.supabase.co/rest/v1/",supabaseAnonKey:"sb_publishable_m82WrDtG9_3cwQtU02iN-A_QzEMAKo1"};
+const CONFIG={viber:"9609985786",ig:"https://instagram.com",fb:"https://facebook.com",supabaseUrl:"https://mchuktivihwoyvdnmchu.supabase.co",supabaseAnonKey:"sb_publishable_m82WrDtG9_3cwQtU02iN-A_QzEMAKo1"};
 const DEFAULT_PRODUCTS=[
   { code: "00030", name: "Drypers Diapers NB (Newborn)", cat: "Diapers", price: 200, icon: "🧷" },
   { code: "00031", name: "Drypers Diapers Small", cat: "Diapers", price: 200, icon: "🧷" },
